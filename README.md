@@ -12,6 +12,12 @@ docker run -it -p 5000:5000 <name:tag>
 
 You should see the following:
  * Serving Flask app "hello"
- * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+
+Navigate to http://127.0.0.1:5000/ to view the app.
+
+NB. If port 5000 is already occupied, change the second occurence of 5000
+in the docker run command to an unoccupied port, and navigate to
+http://127.0.0.1:<your port>/
 
 # Run the tests

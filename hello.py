@@ -12,9 +12,9 @@ mylimiter = Limiter(app)
 @app.route("/")
 @mylimiter.limit(100)
 def hello():
-    print('Printing hello', file=sys.stderr)
+    print('Inside hello()', file=sys.stderr)
     return "Hello, World!"
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True)  # TODO Remove debug in prod
+    app.run(host='0.0.0.0', debug=True, ssl_context='adhoc')  # TODO Remove debug in prod

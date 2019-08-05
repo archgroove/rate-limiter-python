@@ -11,7 +11,7 @@ class BufferFullError(Exception):
 class CircularBuffer:
 
     def __init__(self, maxsize):
-        if _maxsize < 1:
+        if maxsize < 1:
             raise ValueError('maxsize must be positive')
         self._maxsize = maxsize
         self.size = 0
@@ -23,7 +23,7 @@ class CircularBuffer:
 
     def add_to_end(self, item):
         """Add an item to the end of the buffer"""
-        if not is_full():
+        if not self.is_full():
             index = (self._start + self.size) % self._maxsize
             self._buffer[index] = item
             self.size += 1
@@ -41,6 +41,8 @@ class CircularBuffer:
 
 
     def __getitem__(self, index):
+        if index < 0:
+            raise IndexError(f"Index must be positive")
         if index >= self._maxsize:
             raise IndexError(f"Index is out of bounds")
         if index >= self.size:

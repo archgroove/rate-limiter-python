@@ -48,7 +48,12 @@ class TestCircularBuffer(unittest.TestCase):
 
     def test_remove_too_many_fails(self):
         cb = self._full_buffer()
-        self.assertRaises(IndexError, cb.remove_from_start, 6)
+        self.assertRaises(ValueError, cb.remove_from_start, 6)
+        cb.remove_from_start(6)
+
+    def test_remove_zero_succeeds_does_not_change_size(self):
+        cb = self._full_buffer()
+        cb.remove_from_start(0)
         self.assertEqual(5, cb.size)
 
     def test_remove_negatory_fails(self):

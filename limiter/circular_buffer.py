@@ -32,10 +32,12 @@ class CircularBuffer:
 
     def remove_from_start(self, n=1):
         """Remove n items from the start of the buffer"""
-        if n < 1:
+        if n == 0:
+            return
+        if n < 0:
             raise ValueError(f"Must remove a positive number")
         if n > self.size:
-            raise IndexError(f"There are only {self.size} items in the buffer")
+            raise ValueError(f"There are only {self.size} items in the buffer")
         self._start = (self._start + n) % self._maxsize
         self.size -= n
 

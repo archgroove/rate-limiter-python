@@ -10,9 +10,9 @@ mylimiter = Limiter(app)
 
 
 @app.route("/")
-@mylimiter.limit(5, 'minute')
+@mylimiter.limit(100, 'minute')
 def hello():
-    print('Inside hello()', file=sys.stderr)
+    logging.info('Inside hello()')
     return "Hello, World!"
 
 

@@ -6,6 +6,7 @@ Version: 0.1
 
 TODO: add concurrency
 """
+import logging
 import sys
 import typing
 from datetime import datetime, timedelta
@@ -112,9 +113,12 @@ class Limiter:
         now = datetime.now()
         self._clear_buffer(cbuffer, period, now)
         succeeded = self._record_access(cbuffer, now)
+        logging.info(limit_name + ' accessed by ' + unique_id +
+                     ' ' + str(cbuffer.size) + ' times in the last ' + str(period) + 'h')
         if not succeeded:
             s = self._seconds_remaining(now, period, cbuffer)
             abort(429, f"Rate limit exceeded. Try again in #{s} seconds")
+
 
     def limit(self, rate: int, period_str: str, shared: str = None):
         """
@@ -137,8 +141,6 @@ class Limiter:
                 if identity.unique_id == None:
                     abort(identity.error_code)
                 self._limit(rate, period, shared or func.__name__, identity.unique_id)
-                # TODO Add logging, print debug info to console for demo purposes
-                print(identity.unique_id + ' accessed ' + func.__name__, file=sys.stderr)
                 return func(*args, **kwargs)
             return limit_wrapper
         return limit_decorator

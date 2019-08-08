@@ -18,7 +18,7 @@ You should see the following:
  * Serving Flask app "hello"
  * Running on https://0.0.0.0:5000/ (Press CTRL+C to quit)
 
-Navigate to https://localhost:5000?apikey=user.
+Navigate to https://localhost:5000?apikey=user. TODO: get user securely from auth header
 
 Since we're using a dummy certificate to authenticate this for demonstration
 purposes, you will see a security warning. Since localhost is secure, it is
@@ -34,6 +34,8 @@ app address to the same thing.
 cd limiter
 python -m unittest discover
 ```
+
+TODO: add tests for limiter
 
 # Programming guidelines
 

@@ -30,6 +30,10 @@ app address to the same thing.
 
 # Run the tests
 
+```
+cd limiter
+python -m unittest discover
+```
 
 # Programming guidelines
 

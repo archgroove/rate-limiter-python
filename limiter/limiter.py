@@ -46,16 +46,16 @@ class Limiter:
         identity = Identity(unique_id, error_code)
         return identity
 
-    def _clear_buffer(cbuffer: dict, period: timedelta, now: datetime):
+    def _clear_buffer(self, cbuffer: dict, period: timedelta, now: datetime):
         # TODO use a binary search to find the oldest expired entry
         # TODO make this a method of a circular_buffer subclass that only
         # accepts timestamps
         index = 0
-        while cbuffer[index] < now - period and index < cbuffer.size:  # TODO convert period to timestamp
+        while index < cbuffer.size and cbuffer[index] < now - period:
             index += 1
         cbuffer.remove_from_start(index)
 
-    def _record_access(self, cbuffer: dict) -> bool:
+    def _record_access(self, cbuffer: dict, now: datetime) -> bool:
         """
         Creates the rate limit database for this endpoint or shared rate limit if
         it does not exist, and records the access if it should succeed. Returns
@@ -66,20 +66,22 @@ class Limiter:
             return True
         return False
 
-    def _seconds_remaining(now: datetime, period: timedelta, cbuffer: dict) -> int:
+    def _seconds_remaining(self, now: datetime, period: timedelta, cbuffer: dict) -> int:
         """Get the number of seconds remaining before a user can access an endpoint"""
         # A database for this endpoint and a buffer for this user must exist
         if not cbuffer.is_full():
             return 0
         limit_expires = cbuffer[0] + period
-        time_remaining = max(0, limit_expires - now)
-        return time_remaining.total_seconds()
+        time_remaining_seconds = max(0, (limit_expires - now).total_seconds())
+        return int(time_remaining_seconds)
 
-    def _get_period_from_string(period_str: str) -> timedelta:
+    def _get_period_from_string(self, period_str: str) -> timedelta:
         """Convert a rate limiting period string to a timedelta object"""
         # TODO implement logic to handle other rate limiting periods
         if period_str == 'hour':
             period = timedelta(hours=1)
+        elif period_str == 'minute':
+            period = timedelta(minutes=1)
         else:
             raise ValueError(f"{period_str} is not a supported time period")
         return period
@@ -93,7 +95,7 @@ class Limiter:
 
         rate -- the rate limit
         period -- the time period over which the rate limit applies (timedelta)
-        endpoint_name -- the name of the endpoint or shared rate limit to which 
+        endpoint_name -- the name of the endpoint or shared rate limit to which
             the rate limit applies
         unique_id -- a unique identifier for the user accessing the endpoint
         """
@@ -108,10 +110,10 @@ class Limiter:
         cbuffer = database[unique_id]
 
         now = datetime.now()
-        self._clear_buffer(now, period, cbuffer)
-        succeeded = _record_access(cbuffer)
+        self._clear_buffer(cbuffer, period, now)
+        succeeded = self._record_access(cbuffer, now)
         if not succeeded:
-            s = self._seconds_remaining(rate, period, cbuffer)
+            s = self._seconds_remaining(now, period, cbuffer)
             abort(429, f"Rate limit exceeded. Try again in #{s} seconds")
 
     def limit(self, rate: int, period_str: str, shared: str = None):
@@ -125,7 +127,7 @@ class Limiter:
             for rate limits shared across multiple endpoints. If this is not
             supplied, the limit is applied only to the endpoint this function wraps
         """
-        period = _get_period_from_string(period_str)
+        period = self._get_period_from_string(period_str)
 
         def limit_decorator(func):
             @wraps(func)

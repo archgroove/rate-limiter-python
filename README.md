@@ -37,7 +37,7 @@ python -m unittest discover
 
 TODO: add tests for limiter
 
-# Programming guidelines
+# Developer guidelines
 
 The name of the function which the limit decorator wraps is used as the key
 of the database (implemented as a dictionary) which records the number and time

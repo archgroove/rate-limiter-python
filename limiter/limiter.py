@@ -1,14 +1,22 @@
 """
 Decorator that enforces rate limit on a Flask app. NB. Authorization must be
-doen before the rate limiter is called.
+done before the rate limiter is called. The current implementation uses an
+in-memory database with a circular buffer for each user that gets populated
+with a maximum number of entries which depends on the rate limit.
 
 Version: 0.1
 
-TODO: add concurrency
+TODO:
+[ ] research more performant concurrency support
+[ ] use authorization headers to get user id
+[ ] add periodic persistent storage to handle unexpected downtime
+[ ] add persistent storage to handle users that can't fit in memory
+[ ] Add binary search of the circular buffer to quickly find the last out-of-date entry
 """
 import logging
 import sys
 import typing
+from threading import Lock
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import request
@@ -21,6 +29,7 @@ from circular_buffer import CircularBuffer
 # and the rest in a persistent database like Redis. A persistent store would
 # also be better if you need to track the rate-limit across restarts.
 databases = {}
+
 
 class Limiter:
     """
@@ -105,19 +114,22 @@ class Limiter:
             databases[limit_name] = {}
         database = databases[limit_name]
 
-        # Create an buffer for this user if it doesn't exist
+        # Create an buffer and lock for this user if it doesn't exist
         if not unique_id in database:
-            database[unique_id] = CircularBuffer(rate)
-        cbuffer = database[unique_id]
+            database[unique_id] = {'buffer': CircularBuffer(rate), 'lock': Lock()}
+        cbuffer = database[unique_id]['buffer']
+        lock = database[unique_id]['lock']
 
         now = datetime.now()
-        self._clear_buffer(cbuffer, period, now)
-        succeeded = self._record_access(cbuffer, now)
-        logging.info(limit_name + ' accessed by ' + unique_id +
-                     ' ' + str(cbuffer.size) + ' times in the last ' + str(period) + 'h')
-        if not succeeded:
-            s = self._seconds_remaining(now, period, cbuffer)
-            abort(429, f"Rate limit exceeded. Try again in #{s} seconds")
+
+        with lock:
+            self._clear_buffer(cbuffer, period, now)
+            succeeded = self._record_access(cbuffer, now)
+            logging.info(limit_name + ' accessed by ' + unique_id +
+                         ' ' + str(cbuffer.size) + ' times in the last ' + str(period) + 'h')
+            if not succeeded:
+                s = self._seconds_remaining(now, period, cbuffer)
+                abort(429, f"Rate limit exceeded. Try again in #{s} seconds")
 
 
     def limit(self, rate: int, period_str: str, shared: str = None):

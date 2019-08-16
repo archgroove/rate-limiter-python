@@ -1,8 +1,10 @@
 """
-Decorator that enforces rate limit on a Flask app. NB. Authorization must be
-done before the rate limiter is called. The current implementation uses an
+Decorator that enforces rate limit on a Flask app. The current implementation uses an
 in-memory database with a circular buffer for each user that gets populated
 with a maximum number of entries which depends on the rate limit.
+
+NB. Authorization must be
+done before the rate limiter is called.
 
 Version: 0.1
 

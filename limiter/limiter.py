@@ -9,6 +9,7 @@ done before the rate limiter is called.
 Version: 0.1
 
 TODO:
+[ ] unit tests for limiter decorator (currently only integration tested)
 [ ] research more performant concurrency support
 [ ] use authorization headers to get user id
 [ ] add periodic persistent storage to handle unexpected downtime

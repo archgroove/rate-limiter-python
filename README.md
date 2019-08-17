@@ -1,3 +1,7 @@
+# Background
+
+This is an in-progress example rate limiter module for learning about decorators and rate limiting.
+
 # Python version
 
 Python 3.7

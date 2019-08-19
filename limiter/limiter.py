@@ -15,6 +15,7 @@ TODO:
 [ ] add periodic persistent storage to handle unexpected downtime
 [ ] add persistent storage to handle users that can't fit in memory
 [ ] Add binary search of the circular buffer to quickly find the last out-of-date entry
+[ ] Consider integrating this with Quart, the asyncio version of Flask
 """
 import logging
 import sys
